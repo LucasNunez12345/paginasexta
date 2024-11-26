@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parte de Concurrencia a Emergencias - Sexta Compañía</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    
+    <!-- Estilos externos -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css">
+    
+    <!-- Estilos propios -->
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/components.css">
+
+    <!-- Scripts externos -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <!-- Barra de navegación -->
+    <nav class="nav-bar">
+        <div class="nav-logo">
+            <img src="assets/logo.png" alt="Logo Sexta Compañía">
+        </div>
+        <div class="nav-title">
+            <h1>Parte de Concurrencia a Emergencias</h1>
+            <h2>Sexta Compañía de Bomberos - Curicó</h2>
+        </div>
+        <div class="nav-actions">
+            <button id="btnUndo" class="btn-icon" title="Deshacer">
+                <span class="icon-undo"></span>
+            </button>
+            <button id="btnRedo" class="btn-icon" title="Rehacer">
+                <span class="icon-redo"></span>
+            </button>
+            <button id="btnReset" class="btn-icon" title="Reiniciar formulario">
+                <span class="icon-reset"></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Contenedor principal -->
+    <main class="main-container">
+        <!-- Formulario de emergencia -->
+        <form id="emergencyForm" class="form-container">
+            <!-- Sección de Mandos -->
+            <section id="mandosSection" class="form-section">
+                <h3>Información de Mandos</h3>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="obacNombre">Nombre OBAC:</label>
+                        <input type="text" 
+                               id="obacNombre" 
+                               name="obacNombre" 
+                               required 
+                               data-field="obac.nombre">
+                        <span class="error-message" id="obacNombre_error"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="obacCargo">Cargo OBAC:</label>
+                        <select id="obacCargo" 
+                                name="obacCargo" 
+                                required 
+                                data-field="obac.cargo">
+                            <option value="">Seleccione cargo</option>
+                            <option value="comandante1">Comandante 1°</option>
+                            <option value="comandante2">Comandante 2°</option>
+                            <option value="comandante3">Comandante 3°</option>
+                            <option value="capitan">Capitán</option>
+                            <option value="teniente1">Teniente 1°</option>
+                            <option value="teniente2">Teniente 2°</option>
+                            <option value="teniente3">Teniente 3°</option>
+                            <option value="voluntario">Voluntario</option>
+                        </select>
+                        <span class="error-message" id="obacCargo_error"></span>
+                    </div>
+                </div>
+                <div class="form-group obac-compania campo-condicional" id="obacCompaniaGroup">
+                    <label for="obacCompania">Compañía:</label>
+                    <select id="obacCompania" 
+                            name="obacCompania" 
+                            data-field="obac.compania">
+                        <option value="">Seleccione compañía</option>
+                        <option value="1">Primera</option>
+                        <option value="2">Segunda</option>
+                        <option value="3">Tercera</option>
+                        <option value="4">Cuarta</option>
+                        <option value="5">Quinta</option>
+                        <option value="6">Sexta</option>
+                        <option value="7">Séptima</option>
+                        <option value="8">Octava</option>
+                    </select>
+                    <span class="error-message" id="obacCompania_error"></span>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="mandoCompaniaNombre">Nombre Mando Compañía:</label>
+                        <input type="text" 
+                               id="mandoCompaniaNombre" 
+                               name="mandoCompaniaNombre" 
+                               required 
+                               data-field="mandoCompania.nombre">
+                        <span class="error-message" id="mandoCompaniaNombre_error"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="mandoCompaniaCargo">Cargo Mando Compañía:</label>
+                        <select id="mandoCompaniaCargo" 
+                                name="mandoCompaniaCargo" 
+                                required 
+                                data-field="mandoCompania.cargo">
+                            <option value="">Seleccione cargo</option>
+                            <option value="capitan">Capitán</option>
+                            <option value="teniente1">Teniente 1°</option>
+                            <option value="teniente2">Teniente 2°</option>
+                            <option value="teniente3">Teniente 3°</option>
+                            <option value="voluntario">Voluntario</option>
+                        </select>
+                        <span class="error-message" id="mandoCompaniaCargo_error"></span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sección de Emergencia -->
+            <section id="emergenciaSection" class="form-section">
+                <h3>Información de la Emergencia</h3>
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label for="fecha">Fecha:</label>
+                        <div class="input-with-tooltip">
+                            <input type="date" 
+                                   id="fecha" 
+                                   name="fecha" 
+                                   required 
+                                   data-field="fecha">
+                            <div class="tooltip">
+                                <span class="tooltip-text">Seleccione la fecha de la emergencia</span>
+                            </div>
+                        </div>
+                        <span class="error-message" id="fecha_error"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="horaSalida">Hora de Salida:</label>
+                        <div class="input-with-tooltip">
+                            <input type="time" 
+                                   id="horaSalida" 
+                                   name="horaSalida" 
+                                   required 
+                                   data-field="horaSalida">
+                            <div class="tooltip">
+                                <span class="tooltip-text">Hora de salida del cuartel</span>
+                            </div>
+                        </div>
+                        <span class="error-message" id="horaSalida_error"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="horaLlegada">Hora de Llegada:</label>
+                        <div class="input-group">
+                            <div class="input-with-tooltip">
+                                <input type="time" 
+                                       id="horaLlegada" 
+                                       name="horaLlegada" 
+                                       required 
+                                       data-field="horaLlegada">
+                                <div class="tooltip">
+                                    <span class="tooltip-text">Hora de llegada al lugar</span>
+                                </div>
+                            </div>
+                            <span class="indicador" id="horaLlegadaIndicador"></span>
+                        </div>
+                        <span class="error-message" id="horaLlegada_error"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="direccionManual">Dirección:</label>
+                    <div class="direccion-input">
+                        <div class="input-with-tooltip">
+                            <input type="text" 
+                                   id="direccionManual" 
+                                   name="direccion" 
+                                   required 
+                                   data-field="direccion">
+                            <div class="tooltip">
+                                <span class="tooltip-text">Ingrese la dirección o seleccione en el mapa</span>
+                            </div>
+                        </div>
+                        <button type="button" 
+                                id="mostrarMapa" 
+                                class="btn-secondary">
+                            Seleccionar en Mapa
+                        </button>
+                    </div>
+                    <span class="error-message" id="direccion_error"></span>
+                </div>
+
+                <div id="mapaContainer" class="mapa-container" style="display: none;">
+                    <div id="mapa" class="leaflet-container"></div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="tipoEmergencia">Tipo de Emergencia:</label>
+                        <select id="tipoEmergencia" 
+                                name="tipoEmergencia" 
+                                required 
+                                data-field="tipoEmergencia">
+                            <option value="">Seleccione tipo</option>
+                            <option value="10-0">10-0 Llamado estructural</option>
+                            <option value="10-1">10-1 Fuego en vehículo</option>
+                            <option value="10-2">10-2 Llamado de pastizales / Forestal</option>
+                            <option value="10-3">10-3 Salvamento de personas</option>
+                            <option value="10-4">10-4 Rescate Vehicular</option>
+                            <option value="10-5">10-5 Incidente Hazmat</option>
+                            <option value="10-6">10-6 Emanación de gas</option>
+                            <option value="10-7">10-7 Llamado eléctrico</option>
+                            <option value="10-8">10-8 Llamado no clasificado</option>
+                            <option value="10-9">10-9 Llamado a otros servicios</option>
+                            <option value="10-10">10-10 Llamado a remoción de escombros</option>
+                            <option value="10-11">10-11 Llamado a servicio aéreo</option>
+                            <option value="10-12">10-12 Llamado a apoyar a otros Cuerpos</option>
+                            <option value="10-13">10-13 Atentado terrorista</option>
+                            <option value="10-14">10-14 Avión que cayó o impactó estructura</option>
+                            <option value="10-15">10-15 Simulacro</option>
+                        </select>
+                        <span class="error-message" id="tipoEmergencia_error"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="magnitud">Magnitud:</label>
+                        <div class="input-with-tooltip">
+                            <select id="magnitud" 
+                                    name="magnitud" 
+                                    required 
+                                    data-field="magnitud">
+                                <option value="">Seleccione magnitud</option>
+                                <option value="baja">Baja</option>
+                                <option value="media">Media</option>
+                                <option value="alta">Alta</option>
+                            </select>
+                            <div class="tooltip">
+                                <span class="tooltip-text">Seleccione la magnitud de la emergencia</span>
+                            </div>
+                        </div>
+                        <span class="error-message" id="magnitud_error"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="puntoOrigen">Punto de Origen:</label>
+                    <input type="text" 
+                           id="puntoOrigen" 
+                           name="puntoOrigen" 
+                           data-field="puntoOrigen">
+                    <span class="error-message" id="puntoOrigen_error"></span>
+                </div>
+            </section>
+
+            <!-- Sección de Pacientes -->
+            <section id="pacientesSection" class="form-section">
+                <h3>Información de Pacientes</h3>
+                <button type="button" id="agregarPaciente" class="btn-agregar">
+                    <span class="icon-plus"></span>
+                    Agregar Paciente
+                </button>
+                <div id="listaPacientes" class="lista-container"></div>
+            </section>
+
+            <!-- Sección de Vehículos -->
+            <section id="vehiculosSection" class="form-section">
+                <h3>Información de Vehículos</h3>
+                <button type="button" id="agregarVehiculo" class="btn-agregar">
+                    <span class="icon-plus"></span>
+                    Agregar Vehículo
+                </button>
+                <div id="listaVehiculos" class="lista-container"></div>
+            </section>
+
+            <!-- Sección de Unidades -->
+            <section id="unidadesSection" class="form-section">
+                <h3>Unidades Concurrentes</h3>
+
+                <div class="unidades-subsection">
+                    <h4>Unidades de Bomberos</h4>
+                    <button type="button" id="agregarUnidadBomberos" class="btn-agregar">
+                        <span class="icon-plus"></span>
+                        Agregar Unidad
+                    </button>
+                    <div id="listaUnidadesBomberos" class="lista-container"></div>
+                </div>
+
+                <div class="unidades-subsection">
+                    <h4>Unidades de Carabineros</h4>
+                    <button type="button" id="agregarUnidadCarabineros" class="btn-agregar">
+                        <span class="icon-plus"></span>
+                        Agregar Unidad
+                    </button>
+<div id="listaUnidadesCarabineros" class="lista-container"></div>
+                </div>
+
+                <div class="unidades-subsection">
+                    <h4>Unidades de Ambulancia</h4>
+                    <button type="button" id="agregarUnidadAmbulancia" class="btn-agregar">
+                        <span class="icon-plus"></span>
+                        Agregar Unidad
+                    </button>
+                    <div id="listaUnidadesAmbulancia" class="lista-container"></div>
+                </div>
+            </section>
+
+            <!-- Sección de Observaciones -->
+            <section id="observacionesSection" class="form-section">
+                <h3>Observaciones</h3>
+                <div class="form-group">
+                    <textarea id="observaciones" 
+                             name="observaciones" 
+                             rows="4" 
+                             data-field="observaciones"
+                             placeholder="Ingrese las observaciones relevantes..."></textarea>
+                    <span class="error-message" id="observaciones_error"></span>
+                </div>
+            </section>
+
+            <div class="form-actions">
+                <button type="button" id="btnContinuar" class="btn-primary">
+                    Continuar a Lista de Asistencia
+                </button>
+            </div>
+        </form>
+
+        <!-- Formulario de Asistencia -->
+        <div id="asistenciaForm" class="form-container" style="display: none;">
+            <h3>Lista de Asistencia</h3>
+            <button type="button" id="agregarVoluntario" class="btn-agregar">
+                <span class="icon-plus"></span>
+                Agregar Voluntario
+            </button>
+            <div id="listaVoluntarios" class="lista-container"></div>
+
+            <div class="form-actions">
+                <button type="button" id="btnVolver" class="btn-secondary">
+                    <span class="icon-arrow-left"></span>
+                    Volver
+                </button>
+                <button type="button" id="btnGenerarPDF" class="btn-primary">
+                    <span class="icon-file-pdf"></span>
+                    Generar PDF
+                </button>
+            </div>
+        </div>
+
+        <!-- Vista previa del PDF -->
+        <div id="pdfPreviewContainer" class="pdf-preview-container" style="display: none;">
+            <div class="pdf-preview-header">
+                <h3>Vista Previa del PDF</h3>
+                <button type="button" id="btnCerrarPDF" class="btn-icon">
+                    <span class="icon-close"></span>
+                </button>
+            </div>
+            <iframe id="pdfPreview" class="pdf-preview"></iframe>
+        </div>
+    </main>
+
+    <!-- Indicador de carga -->
+    <div id="loadingIndicator" class="loading-indicator" style="display: none;">
+        <div class="loading-spinner"></div>
+        <div class="loading-message">Cargando...</div>
+    </div>
+
+    <!-- Contenedor de mensajes de error -->
+    <div id="errorMessages" class="error-messages" style="display: none;"></div>
+
+    <!-- Scripts de la aplicación -->
+    <script src="js/utils.js"></script>
+    <script src="js/stateManager.js"></script>
+    <script src="js/validations.js"></script>
+    <script src="js/mapService.js"></script>
+    <script src="js/uimanager.js"></script>
+    <script src="js/pacientes.js"></script>
+    <script src="js/vehiculos.js"></script>
+    <script src="js/unidades.js"></script>
+    <script src="js/asistencia.js"></script>
+    <script src="js/pdf.js"></script>
+    <script src="js/index.js"></script>
+</body>
+</html>
